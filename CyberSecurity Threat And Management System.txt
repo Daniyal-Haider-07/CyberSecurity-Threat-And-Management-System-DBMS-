@@ -1,0 +1,1101 @@
+CREATE DATABASE CyberSecurity_DB;
+
+USE CyberSecurity_DB;
+
+---NO check constraint for foreign key issue
+ALTER TABLE Users_Backup NOCHECK CONSTRAINT ALL;
+ALTER TABLE UserRoles NOCHECK CONSTRAINT ALL;
+ALTER TABLE Permissions NOCHECK CONSTRAINT ALL;
+ALTER TABLE Department NOCHECK CONSTRAINT ALL;
+ALTER TABLE Organization NOCHECK CONSTRAINT ALL;
+ALTER TABLE Users NOCHECK CONSTRAINT ALL;
+ALTER TABLE IncidentCategories NOCHECK CONSTRAINT ALL;
+ALTER TABLE SeverityLevels NOCHECK CONSTRAINT ALL;
+ALTER TABLE IncidentStatus NOCHECK CONSTRAINT ALL;
+ALTER TABLE Incidents NOCHECK CONSTRAINT ALL;
+ALTER TABLE Systems NOCHECK CONSTRAINT ALL;
+ALTER TABLE AffectedSystems NOCHECK CONSTRAINT ALL;
+ALTER TABLE Domain NOCHECK CONSTRAINT ALL;
+ALTER TABLE IPAddress NOCHECK CONSTRAINT ALL;
+ALTER TABLE DomainIP NOCHECK CONSTRAINT ALL;
+ALTER TABLE AttackSources NOCHECK CONSTRAINT ALL;
+ALTER TABLE IncidentLogs NOCHECK CONSTRAINT ALL;
+ALTER TABLE Resolutions NOCHECK CONSTRAINT ALL;
+ALTER TABLE Notifications NOCHECK CONSTRAINT ALL;
+ALTER TABLE Reports NOCHECK CONSTRAINT ALL;
+
+
+-- Drop existing tables to avoid foreign key constraints issue
+DROP TABLE IF EXISTS Users_Backup;
+DROP TABLE IF EXISTS UserRoles;
+DROP TABLE IF EXISTS Permissions;
+DROP TABLE IF EXISTS Department;
+DROP TABLE IF EXISTS Organization;
+DROP TABLE IF EXISTS Users;
+DROP TABLE IF EXISTS IncidentCategories;
+DROP TABLE IF EXISTS SeverityLevels;
+DROP TABLE IF EXISTS IncidentStatus;
+DROP TABLE IF EXISTS Incidents; 
+DROP TABLE IF EXISTS Systems;
+DROP TABLE IF EXISTS AffectedSystems;
+DROP TABLE IF EXISTS Domain;
+DROP TABLE IF EXISTS IPAddress;
+DROP TABLE IF EXISTS DomainIP;
+DROP TABLE IF EXISTS AttackSources;
+DROP TABLE IF EXISTS Resolutions; 
+DROP TABLE IF EXISTS IncidentLogs;
+DROP TABLE IF EXISTS Notifications; 
+DROP TABLE IF EXISTS Reports; 
+ 
+
+---Truncating tables for data insertion issue
+TRUNCATE TABLE Users_Backup;
+TRUNCATE TABLE Reports;
+TRUNCATE TABLE Notifications;
+TRUNCATE TABLE Resolutions;
+TRUNCATE TABLE IncidentLogs;
+TRUNCATE TABLE AttackSources;
+TRUNCATE TABLE DomainIP;
+TRUNCATE TABLE IPAddress;
+TRUNCATE TABLE Domain;
+TRUNCATE TABLE AffectedSystems;
+TRUNCATE TABLE Systems;
+TRUNCATE TABLE Incidents;
+TRUNCATE TABLE IncidentStatus;
+TRUNCATE TABLE SeverityLevels;
+TRUNCATE TABLE IncidentCategories;
+TRUNCATE TABLE Users;
+TRUNCATE TABLE Permissions;
+TRUNCATE TABLE UserRoles;
+TRUNCATE TABLE Department;
+TRUNCATE TABLE Organization;
+
+
+------------TABLE NO 1 -----------
+
+-- UserRoles Table
+create table UserRoles
+(
+  RoleID INT PRIMARY KEY,
+  RoleName Varchar(20)
+);
+
+------------TABLE NO 2	-----------
+
+-- Permissions Table
+create table Permissions
+( 
+PermissionID INT PRIMARY KEY,
+ RoleID INT,
+ Permission_Name Varchar(20)
+ );
+
+------------TABLE NO 3 -----------
+
+-- Department Table
+CREATE TABLE Department
+(
+    DeptID INT ,
+    DeptName VARCHAR(100) NOT NULL,
+    DeptLocation VARCHAR(100) UNIQUE NOT NULL,
+    PRIMARY KEY (DeptID)
+);
+
+
+------------TABLE NO 4 -----------
+
+-- Organization Table
+CREATE TABLE Organization
+(
+    OrgID INT ,
+    OrgName VARCHAR(100) NOT NULL,
+    OrgType VARCHAR(100) NOT NULL,
+    PRIMARY KEY (OrgID)
+);
+
+
+------------TABLE NO 5 -----------
+
+-- Users Table
+
+CREATE TABLE Users
+(
+    UserID INT ,
+    Name VARCHAR(100) NOT NULL,
+    Email VARCHAR(100) UNIQUE NOT NULL,
+    PhoneNumber VARCHAR(20),
+    DeptID INT,
+    RoleID INT,
+    OrgID INT,
+    LastLogin DATETIME,
+    PRIMARY KEY (UserID),
+    FOREIGN KEY (RoleID) REFERENCES UserRoles(RoleID),
+	FOREIGN KEY (DeptID) REFERENCES Department(DeptID),
+	FOREIGN KEY (OrgID) REFERENCES Organization(OrgID)
+);
+
+
+------------TABLE NO 6 -----------
+
+-- IncidentCategories Table 
+
+CREATE TABLE IncidentCategories
+(
+    CategoryID INT ,
+    CategoryName VARCHAR(50) UNIQUE NOT NULL,
+    Description TEXT,
+    PRIMARY KEY (CategoryID)
+);
+
+
+------------TABLE NO 7 -----------
+
+-- SeverityLevels Table
+
+CREATE TABLE SeverityLevels 
+(
+  SeverityID INT PRIMARY KEY,
+  SeverityName Varchar(10) CHECK (SeverityName IN ('Low', 'Medium', 'High', 'Critical'))
+);
+
+
+------------TABLE NO 8 -----------
+
+-- IncidentStatus Table
+
+CREATE TABLE IncidentStatus
+(
+  StatusID INT PRIMARY KEY,
+  StatusName VARCHAR(50) CHECK (StatusName IN('Open', 'Under Investigation', 'Resolved'))
+);
+
+------------TABLE NO 9 -----------
+
+-- Incident Table
+
+CREATE TABLE Incidents 
+(
+    IncidentID INT PRIMARY KEY,
+    UserID INT,
+    CategoryID INT,
+    SeverityID INT,
+    AttackVector VARCHAR(50),
+    Description VARCHAR(MAX),
+    AffectedSystemsCount INT,
+    DepartmentID INT,
+    DateReported DATETIME DEFAULT CURRENT_TIMESTAMP,
+    StatusID INT,
+    FOREIGN KEY (UserID) REFERENCES Users(UserID),
+    FOREIGN KEY (CategoryID) REFERENCES IncidentCategories(CategoryID),
+    FOREIGN KEY (SeverityID) REFERENCES SeverityLevels(SeverityID),
+    FOREIGN KEY (DepartmentID) REFERENCES Department(DeptID),
+    FOREIGN KEY (StatusID) REFERENCES IncidentStatus(StatusID)
+);
+
+------------TABLE NO 10	-----------
+
+-- Systems Table
+
+CREATE TABLE Systems
+(
+    SystemID INT ,
+    SystemName VARCHAR(100),
+    IP_Address VARCHAR(45) Unique,
+    PRIMARY KEY (SystemID),
+);
+
+------------TABLE NO 11	-----------
+
+-- AffectedSystems Table
+
+CREATE TABLE AffectedSystems
+(	
+    AffectedSystemID INT,
+    SystemID INT ,
+    IncidentID INT,
+    Status VARCHAR(15) CHECK (Status IN ('Active', 'In Recovery', 'Offline')),
+	PRIMARY KEY (AffectedSystemID),
+    FOREIGN KEY (SystemID) REFERENCES Systems(SystemID),
+    FOREIGN KEY (IncidentID) REFERENCES Incidents(IncidentID)
+);
+
+------------TABLE NO 12	-----------
+
+-- Domain Table
+
+CREATE TABLE Domain
+(
+    DomainID INT,
+    Domain_Name VARCHAR(100),
+    PRIMARY KEY (DomainID)
+);
+
+------------TABLE NO 13	-----------
+
+-- IPAdress Table
+CREATE TABLE IPAddress
+(
+    IPAddressID INT,
+    IPAddress_Name VARCHAR(100),
+    PRIMARY KEY (IPAddressID)
+);
+
+------------TABLE NO 14	-----------
+
+--	DomainIP Table
+CREATE TABLE DomainIP
+(
+    DomainIP INT,
+    DomainID INT,
+	IPAddressID INT,
+    PRIMARY KEY (DomainIP),
+	FOREIGN KEY (DomainID) REFERENCES Domain(DomainID),
+	FOREIGN KEY (IPAddressID) REFERENCES IPAddress(IPAddressID)
+);
+
+------------TABLE NO 15	-----------
+
+-- AttackSources Table
+CREATE TABLE AttackSources
+(
+    SourceID INT ,
+    IncidentID INT,
+    DomainIP INT,
+	SeverityID INT,
+    PRIMARY KEY (SourceID),
+    FOREIGN KEY (IncidentID) REFERENCES Incidents(IncidentID),
+	FOREIGN KEY (DomainIP ) REFERENCES DomainIP(DomainIP),
+	FOREIGN KEY (SeverityID) REFERENCES SeverityLevels(SeverityID),
+);
+
+
+------------TABLE NO 16	-----------
+
+-- IncidentLogs Table
+
+CREATE TABLE IncidentLogs
+(
+    LogID INT ,
+    IncidentID INT,
+    ActionTaken TEXT, --------possible solution----
+    PerformedBy INT,  --------WHICH USER------
+    Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (LogID),
+    FOREIGN KEY (IncidentID) REFERENCES Incidents(IncidentID),
+    FOREIGN KEY (PerformedBy) REFERENCES Users(UserID)
+);
+
+------------TABLE NO 17	-----------
+
+-- Resolutions Table
+CREATE TABLE Resolutions 
+(
+    ResolutionID INT PRIMARY KEY,
+    IncidentID INT,
+    ResolvedBy INT,
+    ResolutionSteps TEXT,
+    RootCauseIdentified TEXT,
+    PreventiveMeasures TEXT,
+    DateResolved DATETIME,
+    StatusUpdate INT,
+	FOREIGN KEY (StatusUpdate) REFERENCES IncidentStatus (StatusID),
+    FOREIGN KEY (IncidentID) REFERENCES Incidents(IncidentID),
+    FOREIGN KEY (ResolvedBy) REFERENCES Users(UserID)
+);
+
+
+------------TABLE NO 18	-----------
+
+-- Notifications Table
+CREATE TABLE Notifications 
+(
+    NotificationID INT ,
+    IncidentID INT,
+    SentTo INT,
+    Message varchar(255),
+    DateSent DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (NotificationID),
+    FOREIGN KEY (IncidentID) REFERENCES Incidents(IncidentID),
+    FOREIGN KEY (SentTo) REFERENCES Users(UserID)
+);
+
+------------TABLE NO 19	-----------
+
+-- Reports Table
+
+CREATE TABLE Reports 
+(
+    ReportID INT ,
+    GeneratedBy INT,
+    TotalIncidents INT,
+    ReportedByDepartment INT,
+	SuccessRate INT, 
+    DateGenerated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (ReportID),
+    FOREIGN KEY (GeneratedBy) REFERENCES Users(UserID),
+	FOREIGN KEY (ReportedByDepartment) REFERENCES Department(DeptID)
+);
+
+--------------------Inserting Data----------------------------
+INSERT INTO UserRoles VALUES 
+(1, 'Admin'),
+(2, 'Analyst'),
+(3, 'Investigator'),
+(4, 'Responder'),
+(5, 'Manager'),
+(6, 'Auditor'),
+(7, 'Supervisor'),
+(8, 'Intern'),
+(9, 'SecurityHead'),
+(10, 'Technician');
+select * from UserRoles
+
+
+INSERT INTO Permissions VALUES 
+(1, 1, 'Create'),
+(2, 1, 'Read'),
+(3, 1, 'Update'),
+(4, 1, 'Delete'),
+(5, 2, 'Read'),
+(6, 3, 'Update'),
+(7, 4, 'Respond'),
+(8, 5, 'Approve'),
+(9, 6, 'Audit'),
+(10, 7, 'Review');
+select * from Permissions
+
+
+INSERT INTO Department VALUES (1, 'Cameron, Baker and Martinez Department', 'East Maurice');
+INSERT INTO Department VALUES (2, 'Lee Group Department', 'North Nichole');
+INSERT INTO Department VALUES (3, 'Salazar, Patterson and Welch Department', 'South Thomasport');
+INSERT INTO Department VALUES (4, 'Cooper Group Department', 'North Sarah');
+INSERT INTO Department VALUES (5, 'Miller, Morgan and Mata Department', 'Kellyville');
+INSERT INTO Department VALUES (6, 'Pacheco-Ellis Department', 'Lake Jamieborough');
+INSERT INTO Department VALUES (7, 'Medina, Martin and Henderson Department', 'New Mariabury');
+INSERT INTO Department VALUES (8, 'Ho Inc Department', 'Timland');
+INSERT INTO Department VALUES (9, 'Camacho, Robinson and Cobb Department', 'Sandrahaven');
+INSERT INTO Department VALUES (10, 'Sanders-Stewart Department', 'North Jasonbury');
+select * from Department
+
+
+INSERT INTO Organization VALUES (1, 'Hayes, Dominguez and Campbell', 'Private');
+INSERT INTO Organization VALUES (2, 'Turner, Moore and Wu', 'Government');
+INSERT INTO Organization VALUES (3, 'Goodwin-Henry', 'Private');
+INSERT INTO Organization VALUES (4, 'Miller, Hatfield and Bullock', 'Government');
+INSERT INTO Organization VALUES (5, 'Johnston Inc', 'Private');
+INSERT INTO Organization VALUES (6, 'Lynn, Nicholson and Horn', 'Educational');
+INSERT INTO Organization VALUES (7, 'Garcia PLC', 'Non-Profit');
+INSERT INTO Organization VALUES (8, 'Johnson-Sanford', 'Government');
+INSERT INTO Organization VALUES (9, 'Juarez, Allison and Vasquez', 'Non-Profit');
+INSERT INTO Organization VALUES (10, 'Martin, West and Lawson', 'Non-Profit');
+select * from Organization
+
+
+INSERT INTO Users VALUES (1, 'Carolyn Gonzales', 'smithbrian@hotmail.com', '+1-581-824-6275', 3, 10, 9, '2025-02-04 20:09:13');
+INSERT INTO Users VALUES (2, 'Christopher Cervantes', 'walkeranthony@gmail.com', '001-879-246-2615x729', 3, 7, 5, '2025-03-08 21:29:24');
+INSERT INTO Users VALUES (3, 'Mark Golden', 'jessicanolan@jimenez-montoya.com', '(922)025-3697', 9, 6, 3, '2025-01-25 07:18:43');
+INSERT INTO Users VALUES (4, 'Alicia Moore', 'dianeblair@coleman.net', '001-712-836-6940x424', 9, 4, 10, '2025-01-10 03:26:59');
+INSERT INTO Users VALUES (5, 'Matthew Nelson', 'nicholasmccarty@martin.info', '+1-001-121-8773x3913', 9, 2, 10, '2025-03-15 08:47:52');
+INSERT INTO Users VALUES (6, 'Andrew Macias', 'jacobsanders@conley-conner.com', '679-954-9724', 3, 9, 9, '2025-02-02 17:22:19');
+INSERT INTO Users VALUES (7, 'Mason Johnson', 'mark69@hamilton.info', '001-642-455-2717', 5, 2, 9, '2025-01-13 17:19:40');
+INSERT INTO Users VALUES (8, 'Keith Lowery', 'jeremiahkline@hotmail.com', '3919489048', 7, 3, 7, '2025-03-28 22:16:14');
+INSERT INTO Users VALUES (9, 'Jane Lopez', 'megan99@brady-stewart.com', '+1-985-466-8402', 6, 6, 3, '2025-02-13 05:07:42');
+INSERT INTO Users VALUES (10, 'Tyler White', 'nicholeparsons@gmail.com', '763-031-0789x7519', 9, 2, 5, '2025-02-25 11:35:55');
+select * from Users
+
+
+INSERT INTO IncidentCategories VALUES 
+(1, 'Malware', 'Malicious software attack'),
+(2, 'Phishing', 'Deceptive email attacks'),
+(3, 'DoS', 'Denial of Service'),
+(4, 'Insider Threat', 'Internal misuse of access'),
+(5, 'Data Breach', 'Sensitive data leaked'),
+(6, 'Privilege Escalation', 'Unauthorized access gain'),
+(7, 'Ransomware', 'Data held for ransom'),
+(8, 'Brute Force', 'Password guessing attacks'),
+(9, 'Zero Day', 'Unknown vulnerability exploit'),
+(10, 'Website Defacement', 'Unauthorized changes to web content');
+select * from IncidentCategories
+
+
+INSERT INTO SeverityLevels VALUES 
+(1, 'Low'),
+(2, 'Medium'),
+(3, 'High'),
+(4, 'Critical');
+select * from SeverityLevels
+
+
+INSERT INTO IncidentStatus VALUES 
+(1, 'Open'),
+(2, 'Under Investigation'),
+(3, 'Resolved');
+select * from IncidentStatus
+
+
+INSERT INTO Incidents VALUES 
+(1, 1, 1, 2, 'Email', 'Malware via email attachment', 2, 1, GETDATE(), 1),
+(2, 2, 2, 1, 'Phishing Link', 'Suspicious email reported', 1, 2, GETDATE(), 1),
+(3, 3, 3, 3, 'Botnet', 'DoS attack on server', 3, 3, GETDATE(), 2),
+(4, 4, 4, 2, 'USB', 'Insider copied files to USB', 1, 4, GETDATE(), 1),
+(5, 5, 5, 4, 'SQL Injection', 'Sensitive data breach', 5, 2, GETDATE(), 2),
+(6, 6, 6, 3, 'Password', 'Privilege escalation in HRMS', 1, 1, GETDATE(), 1),
+(7, 7, 7, 4, 'Malware', 'Ransomware locked server', 2, 3, GETDATE(), 2),
+(8, 8, 8, 1, 'BruteForce', 'Account brute force attempt', 1, 4, GETDATE(), 1),
+(9, 9, 9, 2, 'Exploit', 'Zero-day vulnerability used', 4, 1, GETDATE(), 2),
+(10, 10, 10, 1, 'Defacement', 'Homepage altered', 1, 3, GETDATE(), 3);
+select * from Incidents
+
+
+INSERT INTO Systems VALUES 
+(1, 'Web Server', '192.168.1.10'),
+(2, 'Database Server', '192.168.1.11'),
+(3, 'Email Server', '192.168.1.12'),
+(4, 'Backup Server', '192.168.1.13'),
+(5, 'Internal App', '192.168.1.14'),
+(6, 'Finance System', '192.168.1.15'),
+(7, 'User Portal', '192.168.1.16'),
+(8, 'HRMS', '192.168.1.17'),
+(9, 'Firewall', '192.168.1.18'),
+(10, 'Router', '192.168.1.19');
+select * From Systems
+
+
+INSERT INTO AffectedSystems VALUES 
+(1, 1, 1, 'Active'),
+(2, 2, 2, 'In Recovery'),
+(3, 3, 3, 'Offline'),
+(4, 4, 4, 'Active'),
+(5, 5, 5, 'In Recovery'),
+(6, 6, 6, 'Offline'),
+(7, 7, 7, 'Active'),
+(8, 8, 8, 'In Recovery'),
+(9, 9, 9, 'Offline'),
+(10, 10, 10, 'Active');
+select * from AffectedSystems
+
+
+INSERT INTO Domain VALUES 
+(1, 'malicious.com'),
+(2, 'phishingsite.net'),
+(3, 'attackbot.org'),
+(4, 'badactor.biz'),
+(5, 'hackerz.io'),
+(6, 'fakebank.net'),
+(7, 'blackhat.me'),
+(8, 'infectedhost.net'),
+(9, 'ransom.dev'),
+(10, 'spammer.cc');
+select * from Domain
+
+
+INSERT INTO IPAddress VALUES 
+(1, '103.21.244.1'),
+(2, '45.33.32.1'),
+(3, '198.51.100.42'),
+(4, '203.0.113.10'),
+(5, '192.0.2.20'),
+(6, '172.16.5.15'),
+(7, '10.10.10.10'),
+(8, '8.8.8.8'),
+(9, '185.107.56.230'),
+(10, '142.250.181.206');
+select * from IPAddress
+
+
+INSERT INTO DomainIP VALUES 
+(1, 1, 1),
+(2, 2, 2),
+(3, 3, 3),
+(4, 4, 4),
+(5, 5, 5),
+(6, 6, 6),
+(7, 7, 7),
+(8, 8, 8),
+(9, 9, 9),
+(10, 10, 10);
+select * from DomainIP
+
+
+INSERT INTO AttackSources VALUES 
+(1, 1, 1, 2),
+(2, 2, 2, 1),
+(3, 3, 3, 3),
+(4, 4, 4, 2),
+(5, 5, 5, 4),
+(6, 6, 6, 3),
+(7, 7, 7, 4),
+(8, 8, 8, 1),
+(9, 9, 9, 2),
+(10, 10, 10, 1);
+select * from AttackSources
+
+
+
+INSERT INTO IncidentLogs VALUES 
+(1, 1, 'Initial report submitted', 1, GETDATE()),
+(2, 2, 'Phishing email flagged', 2, GETDATE()),
+(3, 3, 'DoS mitigation started', 3, GETDATE()),
+(4, 4, 'Insider reported', 4, GETDATE()),
+(5, 5, 'Data breach confirmed', 5, GETDATE()),
+(6, 6, 'Account blocked', 6, GETDATE()),
+(7, 7, 'Ransomware isolated', 7, GETDATE()),
+(8, 8, 'Brute force IP blocked', 8, GETDATE()),
+(9, 9, 'Zero-day patch applied', 9, GETDATE()),
+(10, 10, 'Website restored', 10, GETDATE());
+select * from IncidentLogs
+
+
+INSERT INTO Resolutions VALUES 
+(1, 1, 3, 'Removed malware and scanned systems', 'Phishing email', 'Email training', GETDATE(), 3),
+(2, 2, 4, 'Blocked sender and warned employees', 'Social engineering', 'Email awareness', GETDATE(), 3),
+(3, 3, 5, 'Rate limiting and filtering', 'Botnet attack', 'Firewall tuning', GETDATE(), 3),
+(4, 4, 6, 'Access revoked', 'Internal theft', 'Policy update', GETDATE(), 3),
+(5, 5, 7, 'Reset credentials', 'SQLi via login page', 'Input sanitization', GETDATE(), 3),
+(6, 6, 8, 'Privilege removed', 'Default credentials', 'Change defaults', GETDATE(), 3),
+(7, 7, 9, 'Systems decrypted', 'Email malware', 'Backups enabled', GETDATE(), 3),
+(8, 8, 10, 'IP blocked', 'Repeated login attempts', '2FA enforced', GETDATE(), 3),
+(9, 9, 1, 'Patched systems', 'Unknown exploit', 'Regular patching', GETDATE(), 3),
+(10, 10, 2, 'Site restored', 'Vulnerability in CMS', 'Update CMS', GETDATE(), 3);
+select * from Resolutions
+
+
+INSERT INTO Notifications VALUES 
+(1, 1, 1, 'Incident reported', GETDATE()),
+(2, 2, 2, 'Investigation started', GETDATE()),
+(3, 3, 3, 'DoS mitigation update', GETDATE()),
+(4, 4, 4, 'HR informed', GETDATE()),
+(5, 5, 5, 'Legal informed', GETDATE()),
+(6, 6, 6, 'Escalated to IT', GETDATE()),
+(7, 7, 7, 'Backup in progress', GETDATE()),
+(8, 8, 8, 'Monitoring login attempts', GETDATE()),
+(9, 9, 9, 'Critical patch released', GETDATE()),
+(10, 10, 10, 'Website up again', GETDATE());
+select * from Notifications
+
+
+INSERT INTO Reports VALUES 
+(1, 1, 10, 1, 90, GETDATE()),
+(2, 2, 8, 2, 85, GETDATE()),
+(3, 3, 6, 3, 80, GETDATE()),
+(4, 4, 7, 4, 75, GETDATE()),
+(5, 5, 9, 1, 88, GETDATE()),
+(6, 6, 5, 2, 92, GETDATE()),
+(7, 7, 4, 3, 70, GETDATE()),
+(8, 8, 6, 4, 95, GETDATE()),
+(9, 9, 3, 1, 65, GETDATE()),
+(10, 10, 2, 2, 98, GETDATE());
+select * from Reports
+
+
+
+
+------------------- Selecting data from all tables---------------
+
+select * from UserRoles
+select * from Permissions
+select * from Department
+select * from Organization
+select * from Users
+select * from IncidentCategories
+select * from SeverityLevels
+select * from IncidentStatus
+select * from Incidents
+select * From Systems
+select * from AffectedSystems
+select * from Domain
+select * from IPAddress
+select * from DomainIP
+select * from AttackSources
+select * from IncidentLogs
+select * from Resolutions
+select * from Notifications
+select * from Reports
+
+--------------------------TRIGGERS-------------------------------
+
+--1 [ Trigger to ensure that valid role is inserted in Users Table which exists in User_Roles Table] 
+CREATE TRIGGER User_Roles_Check
+ON Users
+INSTEAD OF INSERT
+AS 
+BEGIN 
+     SET NOCOUNT ON;
+	 --Check if User role exists in  UserRoles Table
+	 IF NOT EXISTS (SELECT 1 
+                   FROM inserted i JOIN UserRoles USR ON i.RoleID = USR.RoleID)
+    BEGIN
+        RAISERROR('User role does not exist in UserRoles table.', 16, 1);
+        RETURN;
+    END;
+
+    -- item IDs exist, allow insertion into manufacturing
+    INSERT INTO Users(UserID, Name, Email, PhoneNumber, DeptID, RoleID, OrgID, LastLogin) 
+    SELECT UserID, Name, Email, PhoneNumber, DeptID, RoleID, OrgID, LastLogin
+    FROM inserted;
+END;
+
+
+
+--2[Trigger to ensure Refrential Integrity that valid CategoryID is inserted in Incidents]
+
+CREATE TRIGGER Incident_Category_Check
+ON Incidents
+INSTEAD OF INSERT
+AS 
+BEGIN 
+     SET NOCOUNT ON;
+	 --Check if CategoryID exists in IncidentCategories Table
+	 IF NOT EXISTS (SELECT 1 
+                   FROM inserted i JOIN IncidentCategories Inc ON i.CategoryID = Inc.CategoryID)
+    BEGIN
+        RAISERROR('Incident Category does not exist in IncidentCategories table.', 16, 1);
+        RETURN;
+    END;
+
+    -- item IDs exist, allow insertion into manufacturing
+    INSERT INTO Incidents(IncidentID, UserID, CategoryID, SeverityID, AttackVector, Description, AffectedSystemsCount,DepartmentID ,DateReported,StatusID)
+    SELECT IncidentID, UserID, CategoryID, SeverityID, AttackVector, Description, AffectedSystemsCount,DepartmentID ,DateReported,StatusID
+    FROM inserted;
+END;
+
+
+
+--3 [Trigger to notify team upon adding new incidents]
+
+CREATE TRIGGER Notify_Team
+ON Incidents
+AFTER INSERT 
+AS
+BEGIN
+     SET NOCOUNT ON;
+	 
+	      -- Notify Admins for Critical Incidents
+
+	      INSERT INTO Notifications (IncidentID, SentTo, Message, DateSent)
+          SELECT i.IncidentID,u.UserID, 
+                          CONCAT('New incident reported: ', i.SeverityID, ' - ', i.Description), 
+						  GETDATE()
+		  FROM Inserted i
+		JOIN Users u ON u.RoleID = 1 -- Notify Admin
+     JOIN SeverityLevels sl ON i.SeverityID = sl.SeverityID
+     WHERE sl.SeverityName = 'Critical';
+
+		   -- Notify Managers for Low, Medium, High Incidents
+
+	      INSERT INTO Notifications (IncidentID,SentTo, Message, DateSent)
+          SELECT i.IncidentID,u.UserID, 
+                          CONCAT('New incident reported: ', i.SeverityID, ' - ', i.Description), 
+						  GETDATE()
+		  FROM Inserted i  
+		 JOIN Users u ON u.RoleID = 2 -- Notify Analysts
+     JOIN SeverityLevels sl ON i.SeverityID = sl.SeverityID
+     WHERE sl.SeverityName IN ('Low', 'Medium', 'High');
+	 END;
+
+
+
+
+--4[Trigger to avoid unauthorised access to update Incident Table]
+
+CREATE TRIGGER Restrict_Incident_Update
+ON Incidents
+INSTEAD OF UPDATE
+AS 
+BEGIN
+    -- Check if the update is being performed by an authorized user (Role 1: Admin, Role 2: Analyst)
+    IF EXISTS (
+        SELECT 1 
+        FROM inserted i 
+        JOIN Users u ON i.UserID = u.UserID
+        WHERE u.RoleID NOT IN (1, 2) -- Only Admins (1) & Analysts (2) can update
+    )
+    BEGIN
+        RAISERROR('Unauthorized update attempt on incident.', 16, 1);
+        ROLLBACK;
+    END;
+	--if authorized ye update hogan
+	UPDATE Incidents
+    SET UserID = i.UserID,
+        CategoryID = i.CategoryID,
+        SeverityID = i.SeverityID,
+        AttackVector = i.AttackVector,
+        Description = i.Description,
+        AffectedSystemsCount = i.AffectedSystemsCount,
+        DepartmentID = i.DepartmentID,
+        DateReported = i.DateReported,
+        StatusID = i.StatusID
+    FROM inserted i
+    WHERE Incidents.IncidentID = i.IncidentID;
+END;
+
+
+--5 [Trigger to upadte the high severity to critical only when status approved by admin ]
+CREATE TRIGGER Auto_Set_Severity_To_Critical
+ON Incidents
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Check if the incident status was changed to 'Approved' by the admin
+    IF EXISTS (
+        SELECT 1 
+        FROM inserted i 
+        JOIN Users u ON i.UserID = u.UserID
+        WHERE i.statusid = 2
+          AND u.RoleID = 1 -- Only Admins are allowed to approve
+    )
+    BEGIN
+        
+        UPDATE Incidents
+        SET SeverityID = 4
+        WHERE Statusid = 1
+          AND SeverityID = 3;  
+    END
+END;
+
+
+
+-- 6[Trigger to automatically insert into the IncidentLogs whenever a new row is inserted into the Incidents ]
+
+CREATE TRIGGER InsertIncidentLog
+ON Incidents
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @NewLogID INT;
+
+    -- Get the next available LogID by finding the maximum LogID and adding 1
+    SELECT @NewLogID = ISNULL(MAX(LogID), 0) + 1 FROM IncidentLogs;
+
+    -- Insert the log with the newly generated LogID
+    INSERT INTO IncidentLogs (LogID, IncidentID, ActionTaken, PerformedBy)
+    SELECT 
+        @NewLogID,                             -- Newly generated LogID
+        i.IncidentID,                          -- The IncidentID from the inserted row
+        i.Description,                         -- The Description of the incident as ActionTaken
+        i.UserID                               -- The UserID who reported the incident (Performing user)
+    FROM 
+        inserted i;
+END;
+
+--------BACKUP Audit Table for Users who quit-------------
+CREATE TABLE Users_Backup
+(
+    UserID INT,
+    Name VARCHAR(100),
+    Email VARCHAR(100),
+    PhoneNumber VARCHAR(20),
+    DeptID INT,
+    RoleID INT,
+    OrgID INT,
+    LastLogin DATETIME,
+    DeletedAt DATETIME DEFAULT GETDATE()
+);
+
+-- 7. Trigger to Insert into Backup Table before Deleting a User
+
+CREATE TRIGGER trg_BackupUserBeforeDelete
+ON Users
+INSTEAD OF DELETE
+AS
+BEGIN
+    -- Insert deleted user(s) into backup
+    INSERT INTO Users_Backup (
+        UserID, Name, Email, PhoneNumber, 
+        DeptID, RoleID, OrgID, LastLogin, DeletedAt
+    )
+    SELECT 
+        UserID, Name, Email, PhoneNumber, 
+        DeptID, RoleID, OrgID, LastLogin, GETDATE()
+    FROM deleted;
+
+    -- Proceed with actual deletion
+    DELETE FROM Users
+    WHERE UserID IN (SELECT UserID FROM deleted);
+END;
+
+
+------------------------- VIEWS --------------------------------------
+
+-- 1. View to display incidents with detailed information.
+CREATE VIEW IncidentDetails 
+AS
+SELECT 
+    i.IncidentID,
+    i.Description AS IncidentDescription,
+    ic.CategoryName,
+    sl.SeverityName,
+    is2.StatusName,
+    u.Name AS ReportedBy,
+    d.DeptName AS Department,
+    i.DateReported
+FROM Incidents i
+JOIN IncidentCategories ic ON i.CategoryID = ic.CategoryID
+JOIN SeverityLevels sl ON i.SeverityID = sl.SeverityID
+JOIN IncidentStatus is2 ON i.StatusID = is2.StatusID
+JOIN Users u ON i.UserID = u.UserID
+JOIN Department d ON i.DepartmentID = d.DeptID;
+
+
+
+-- 2. View to show attack sources with associated incident details.
+CREATE VIEW AttackSourceDetails AS
+SELECT 
+    a.SourceID,
+    i.Description AS IncidentDescription,
+    d.Domain_Name,
+    ip.IPAddress_Name,
+    sl.SeverityName
+FROM AttackSources a
+JOIN Incidents i ON a.IncidentID = i.IncidentID
+JOIN DomainIP di ON a.DomainIP = di.DomainIP
+JOIN Domain d ON di.DomainID = d.DomainID
+JOIN IPAddress ip ON di.IPAddressID = ip.IPAddressID
+JOIN SeverityLevels sl ON a.SeverityID = sl.SeverityID;
+
+
+
+-- 3. View to show notifications with user details.
+CREATE VIEW NotificationDetails AS
+SELECT 
+    n.NotificationID,
+    i.Description AS IncidentDescription,
+    u.Name AS SentTo,
+    n.Message,
+    n.DateSent
+FROM Notifications n
+JOIN Incidents i ON n.IncidentID = i.IncidentID
+JOIN Users u ON n.SentTo = u.UserID;
+
+
+
+-- 4. View to display the count of incidents per category.
+CREATE VIEW IncidentsByCategory AS
+SELECT
+    ic.CategoryName,
+    COUNT(i.IncidentID) AS IncidentCount
+FROM Incidents i
+JOIN IncidentCategories ic ON i.CategoryID = ic.CategoryID
+GROUP BY ic.CategoryName;
+
+
+
+-- 5. View to display all the previous Resolved Cases
+create view ResolvedCases as
+select 
+i.Description as IncidentName,
+i.DateReported, 
+r.DateResolved,
+d.DeptName As ResolvedByDepartment,
+DATEDIFF(Day,i.DateReported,r.DateResolved) As TimeTakenToResolve,
+rep.SuccessRate
+From
+Incidents i
+Join 
+Resolutions r on i.IncidentID = r.IncidentID
+join
+Department d on i.DepartmentID = d.DeptID
+join
+Reports rep on i.DepartmentID= rep.ReportedByDepartment 
+where 
+i.StatusID IN (select StatusID from IncidentStatus 
+where StatusName='Resolved');
+
+select * from ResolvedCases
+
+
+
+-- 6. View to display Incident Cases which are not resolved yet
+CREATE VIEW OngoingIncidents
+as 
+select 
+i.Description As Name,
+i.DateReported,
+st.StatusName as Status,
+d.DeptName as ReportedByDepartment ,
+u.Name as Assignedto
+from
+Incidents i 
+join
+Users u on i.UserID= u.UserID
+join
+Department d on i.DepartmentID= d.DeptID
+join 
+IncidentStatus st on i.StatusID= st.StatusID
+where 
+st.StatusName IN ('Open', 'Under Investigation');
+
+select * from OngoingIncidents
+
+
+--7. A simple view for a normal user that shows them only the incidents reported by their department
+CREATE VIEW UserIncidentView AS
+SELECT 
+    i.IncidentID,
+    i.Description AS IncidentDescription,
+    c.CategoryName AS Category,
+    s.SeverityName AS Severity,
+    st.StatusName AS CurrentStatus,
+    i.DateReported
+FROM 
+    Incidents i
+JOIN 
+    IncidentCategories c ON i.CategoryID = c.CategoryID
+JOIN 
+    SeverityLevels s ON i.SeverityID = s.SeverityID
+JOIN 
+    IncidentStatus st ON i.StatusID = st.StatusID;
+
+select * from UserIncidentView
+------------------------- Queries -------------------------------------
+
+-- 1. Retrieve all incidents with their category names and severity levels.
+SELECT 
+    i.IncidentID,
+    i.Description,
+    ic.CategoryName,
+    sl.SeverityName
+FROM Incidents i
+JOIN IncidentCategories ic ON i.CategoryID = ic.CategoryID
+JOIN SeverityLevels sl ON i.SeverityID = sl.SeverityID;
+
+
+
+-- 2. Find all users and their associated roles.
+SELECT 
+    u.Name AS UserName,
+    ur.RoleName
+FROM Users u
+JOIN UserRoles ur ON u.RoleID = ur.RoleID;
+
+
+
+-- 3. List systems affected by a specific incident (e.g., IncidentID = 5).
+SELECT 
+    s.SystemName,
+    s.IP_Address,
+    a.Status
+FROM AffectedSystems a
+JOIN Systems s ON a.SystemID = s.SystemID
+WHERE a.IncidentID = 5;
+
+
+
+-- 4. Show all incident logs, including the user who performed the action.
+SELECT 
+    il.LogID,
+    il.ActionTaken,
+    u.Name AS PerformedBy,
+    il.Timestamp
+FROM IncidentLogs il
+JOIN Users u ON il.PerformedBy = u.UserID;
+
+
+
+-- 5. Retrieve resolutions for incidents, including the user who resolved them.
+SELECT 
+    r.ResolutionID,
+    i.Description AS IncidentDescription,
+    u.Name AS ResolvedBy,
+    r.DateResolved
+FROM Resolutions r
+JOIN Incidents i ON r.IncidentID = i.IncidentID
+JOIN Users u ON r.ResolvedBy = u.UserID;
+
+
+
+-- 6. Find the average success rate of incident resolutions per department.
+SELECT 
+    d.DeptName,
+    AVG(r.SuccessRate) AS AverageSuccessRate
+FROM Reports r
+JOIN Department d ON r.ReportedByDepartment = d.DeptID
+GROUP BY d.DeptName;
+
+
+-- 7. Finding the CategoryName of the most common threat.
+SELECT TOP 1 
+    c.CategoryName
+FROM 
+    Incidents i
+JOIN 
+    IncidentCategories c ON i.CategoryID = c.CategoryID
+GROUP BY 
+    c.CategoryName
+ORDER BY 
+    COUNT(i.IncidentID) DESC;
+
+-- 8. Find the latest log entry for each incident from the IncidentLogs table.
+SELECT il.*
+FROM IncidentLogs il
+JOIN (
+    SELECT IncidentID, MAX(Timestamp) AS LatestTime
+    FROM IncidentLogs
+    GROUP BY IncidentID) 
+	latest ON il.IncidentID = latest.IncidentID AND il.Timestamp = latest.LatestTime;
+
+
+-- 9. Find users who have resolved the most cases
+	SELECT  u.Name,
+    COUNT(r.ResolutionID) AS ResolvedCases
+FROM 
+    Resolutions r
+JOIN 
+    Users u ON r.ResolvedBy = u.UserID
+GROUP BY 
+    u.Name
+ORDER BY 
+    ResolvedCases DESC
+
+
+-- 10. Incident Reported in the last 30 days
+SELECT *
+FROM Incidents
+WHERE DateReported >= DATEADD(DAY, -30, GETDATE());
+
+
+--11.  Logs Summary ( Number of Actions Taken per User)
+SELECT u.Name, COUNT(il.LogID) AS ActionsPerformed
+FROM IncidentLogs il
+JOIN Users u ON il.PerformedBy = u.UserID
+GROUP BY u.Name
+ORDER BY ActionsPerformed DESC;
+
+
+--12. Top Affected Systems
+SELECT s.SystemName, COUNT(*) AS TimesAffected
+FROM AffectedSystems a
+JOIN Systems s ON a.SystemID = s.SystemID
+GROUP BY s.SystemName
+ORDER BY TimesAffected DESC;
+
+
+--13. UserRoles according to their position
+SELECT u.Rolename, p. Permission_Name
+FROM UserRoles as u , Permissions as p
+WHERE u.RoleID= p.RoleID;
+
+
+
+--14. Retrive Non-Profit Organisations and its Users
+SELECT o.OrgName, u.Name
+FROM Organization AS o
+JOIN Users AS u ON o.OrgID = u.OrgID
+WHERE o.OrgType = 'Non-Profit'
+ORDER BY o.OrgName, u.Name;
+
+
+
+--15. Query to retrieve the reports generated by a particular user
+SELECT r.ReportID, r.TotalIncidents , r.SuccessRate 
+FROM Reports as r 
+WHERE r.GeneratedBy =(SELECT u.RoleID 
+                        FROM Users as u 
+						Where u.Name='Jane Lopez')
+ORDER BY r.SuccessRate;
+
+-----------------------------------------THE END -------------------------------------------
