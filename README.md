@@ -29,19 +29,11 @@ It is designed to handle **incident tracking, attack source monitoring, notifica
 
 ## 📑 ERD
 See the full diagram in:  
-`/ERD/ERD_Diagram.pdf`
+`file:///D:/CyberSecurity%20Threat%20And%20Management%20System%20ERD.pdf`
 
----
-
-## 📦 How to Use
-1. Open the `.sql` file(s) from the **/SQL** folder.  
-2. Run them in your preferred SQL environment (MySQL, PostgreSQL, Oracle, or SQL Server).  
-   - If you don’t have SQL Server installed, you can use free tools like:  
-     - [MySQL Workbench](https://dev.mysql.com/downloads/workbench/)  
-     - [DB Fiddle (online)](https://www.db-fiddle.com/)  
-     - [SQLite Online](https://sqliteonline.com/)  
 
 ---
 
 ## 🙌 Credits
-Project by: Daniyal Haider & Team  
+Project by: [@Daniyal-Haider-07](https://github.com/Daniyal-Haider-07)  
+Teammate: [@Tahir-CS](https://github.com/Tahir-CS)
